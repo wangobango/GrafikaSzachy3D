@@ -5,9 +5,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <vector.h>
+#include <string>
+#include <vector>
 
+using namespace std;
+
+struct Shader{
+
+};
 
 struct Vertex {
     glm::vec3 Position;
