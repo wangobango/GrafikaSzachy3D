@@ -3,11 +3,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdio.h>
-#include <string.h>
-#include <vector.h>
+#include <string>
+#include <vector>
 
+using namespace std;
 
 struct Vertex {
     glm::vec3 Position;
