@@ -9,13 +9,10 @@
 #include <vector>
 
 using namespace std;
-<<<<<<< HEAD:headers/parser.h
-=======
 
 struct Shader{
 
 };
->>>>>>> 0d53a012f423f42f209a42c5d5e27b2aafbddf0e:parser.h
 
 struct Vertex {
     glm::vec3 Position;

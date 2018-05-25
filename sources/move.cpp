@@ -6,6 +6,7 @@ move::move(coordinate start, coordinate stop, std::string color ){
     this->start = start;
     this->stop = stop;
     this->color = color;
+    //some test comment
 }
 
 coordinate move::getStartCoordinate(){
