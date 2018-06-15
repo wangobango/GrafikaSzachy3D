@@ -13,9 +13,9 @@
 using namespace std;
 
 int main(){
-    Model model("/models/ChessScene.blend");
-    vector<Mesh> meshes = model.getModel();
-    cout<<meshes[1].indices[4];
+    Model model("models/szachy.obj");
+    //vector<Mesh> meshes = model.getModel();
+    //cout<<meshes[1].vertices[1].Position[1];
 
     return 0;
 
