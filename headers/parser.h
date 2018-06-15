@@ -7,12 +7,12 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <shader.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 using namespace std;
-
-struct Shader{
-
-};
 
 struct Vertex {
     glm::vec3 Position;
@@ -41,4 +41,27 @@ class Mesh {
         void setupMesh();
 };  
 
+class Model
+{
+    public:
+    /* Functions */
+    Model(string path)
+    {
+        loadModel(path);
+    }
+    void Draw(Shader shader);
+    vector<Mesh> getModel(){
+        return meshes;
+    }
+    private:
+    /* Model Data */
+    vector<Mesh> meshes;
+    string directory;
+    /* Functions */
+    void loadModel(string path);    
+    void processNode(aiNode *node, const aiScene *scene);
+    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+    vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type,
+    string typeName);
+};
 
