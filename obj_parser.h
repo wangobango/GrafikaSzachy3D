@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include <shader.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -17,39 +16,11 @@
 
 using namespace std;
 
-struct Vertex {
-    // position
-    glm::vec3 Position;
-    // normal
-    glm::vec3 Normal;
-    // texCoords
-    glm::vec2 TexCoords;
-    // tangent
-    glm::vec3 Tangent;
-    // bitangent
-    glm::vec3 Bitangent;
-};
-
-struct Texture {
-    unsigned int id;
-    string type;
-    aiString path;
-};
-
-class Mesh{
-    public:
-       vector<Vertex> vertices;
-       vector<unsigned int> indices;
-       vector<Texture> textures;
-       Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
-};
 
 class Model{
     public:
-    vector<Mesh> meshes;  
-    vector<Texture> textures;
-    Model(string path);
-    vector<Mesh> getModel(){
-        return meshes;
-    }
+    vector< glm::vec4 > out_vertices;
+    vector< glm::vec2 > out_uvs;
+    vector< glm::vec4 > out_normals;
+    Model(const char* path);    
 };
