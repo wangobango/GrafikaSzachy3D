@@ -21,6 +21,7 @@ Model::Model(const char* path){
                     glm::vec4 vertex;
                     fscanf(file, "%f %f %f \n", &vertex.x, &vertex.y, &vertex.z );
                     vertex.w = 1.0;
+                    vertex_count++;
                     temp_vertices.push_back(vertex);
                 }
                 else if ( strcmp( lineHeader, "vt" ) == 0 ){
