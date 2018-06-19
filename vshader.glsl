@@ -10,9 +10,7 @@ uniform mat4 M;
 in vec4 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
 in vec4 normal; //wektor normalny w wierzcholku w przestrzeni modelu
 in vec2 texCoord0; //wspolrzedne teksturowania
-in vec4 c1; //Pierwsza kolumna macierzy TBN^-1 (na razie ignorowana)
-in vec4 c2; //Druga kolumna macierzy TBN^-1 (na razie ignorowana)
-in vec4 c3; //Trzecia kolumna macierzy TBN^-1 (na razie ignorowana)
+
 
 //Zmienne interpolowane
 out vec4 i_l; //wektor do swiatla(przestrzen oka)

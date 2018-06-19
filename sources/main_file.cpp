@@ -58,13 +58,8 @@ ShaderProgram *shaderProgram; //Wskaźnik na obiekt reprezentujący program cien
 
 
 //Kostka
-float* vertices=Models::CubeInternal::vertices;
-float* normals=Models::CubeInternal::normals;
-float* texCoords=Models::CubeInternal::texCoords;
-float* c1=Models::CubeInternal::c1;
-float* c2=Models::CubeInternal::c2;
-float* c3=Models::CubeInternal::c3;
-int vertexCount=Models::CubeInternal::vertexCount;
+float* vertices,normals,texCoords;
+int vertexCount;
 
 //Czajnik
 /*float* vertices=Models::TeapotInternal::vertices;
@@ -160,10 +155,7 @@ void prepareObject(ShaderProgram *shaderProgram) {
 	bufVertices=makeBuffer(vertices, vertexCount, sizeof(float)*4); //VBO ze współrzędnymi wierzchołków
 	bufNormals=makeBuffer(normals, vertexCount, sizeof(float)*4);//VBO z wektorami normalnymi wierzchołków
 	bufTexCoords=makeBuffer(texCoords, vertexCount, sizeof(float)*2);//VBO ze współrzędnymi teksturowania
-	bufC1=makeBuffer(c1, vertexCount, sizeof(float)*4);//VBO z pierwszą kolumną macierzy TBN^-1 dla każdego wierzchoła
-	bufC2=makeBuffer(c2, vertexCount, sizeof(float)*4);//VBO z drugą kolumną macierzy TBN^-1 dla każdego wierzchoła
-	bufC3=makeBuffer(c3, vertexCount, sizeof(float)*4);//VBO z trzecią kolumną macierzy TBN^-1 dla każdego wierzchoła
-
+	
 	//Zbuduj VAO wiążący atrybuty z konkretnymi VBO
 	glGenVertexArrays(1,&vao); //Wygeneruj uchwyt na VAO i zapisz go do zmiennej globalnej
 
@@ -172,16 +164,14 @@ void prepareObject(ShaderProgram *shaderProgram) {
 	assignVBOtoAttribute(shaderProgram,"vertex",bufVertices,4); //"vertex" odnosi się do deklaracji "in vec4 vertex;" w vertex shaderze
 	assignVBOtoAttribute(shaderProgram,"normal",bufNormals,4); //"normal" odnosi się do deklaracji "in vec4 normal;" w vertex shaderze
 	assignVBOtoAttribute(shaderProgram,"texCoord0",bufTexCoords,2); //"texCoord0" odnosi się do deklaracji "in vec2 texCoord0;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"c1",bufC1,4); //"c1" odnosi się do deklaracji "in vec4 c1;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"c2",bufC2,4); //"c2" odnosi się do deklaracji "in vec4 c2;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"c3",bufC3,4); //"c3" odnosi się do deklaracji "in vec4 c3;" w vertex shaderze
-
+	
 	glBindVertexArray(0); //Dezaktywuj VAO
 }
 
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
+
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0, 1); //Czyść ekran na czarno
 	glEnable(GL_DEPTH_TEST); //Włącz używanie Z-Bufora
