@@ -1,4 +1,4 @@
-#include "obj_parser.h"
+#include "../headers/obj_parser.h"
 
 
 Model::Model(const char* path){        
