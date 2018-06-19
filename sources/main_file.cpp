@@ -28,9 +28,10 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <stdlib.h>
 #include <stdio.h>
 #include "headers/constants.h"
-#include "headers/allmodels.h"
+#include "headers/obj_parser.h"
 #include "headers/lodepng.h"
 #include "headers/shaderprogram.h"
+#include <iostream>
 
 using namespace glm;
 
@@ -58,18 +59,9 @@ ShaderProgram *shaderProgram; //Wskaźnik na obiekt reprezentujący program cien
 
 
 //Kostka
-float* vertices,normals,texCoords;
+float* vertices,*normals, *texCoords;
 int vertexCount;
 
-//Czajnik
-/*float* vertices=Models::TeapotInternal::vertices;
-float* normals=Models::TeapotInternal::vertexNormals;
-float* texCoords=Models::TeapotInternal::texCoords;
-float* c1=Models::TeapotInternal::c1;
-float* c2=Models::TeapotInternal::c2;
-float* c3=Models::TeapotInternal::c3;
-int vertexCount=Models::TeapotInternal::vertexCount;
-*/
 
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
@@ -171,7 +163,10 @@ void prepareObject(ShaderProgram *shaderProgram) {
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-
+	Model model("models/goniec.obj");
+	model.loadArrays(vertices,normals,texCoords);
+	vertexCount = model.vertex_count;
+	//std::cout<<vertices[1];
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0, 1); //Czyść ekran na czarno
 	glEnable(GL_DEPTH_TEST); //Włącz używanie Z-Bufora

@@ -61,5 +61,28 @@ Model::Model(const char* path){
                 }
 
         fclose(file);
-    }   
+    } 
+    
 }
+void Model::loadArrays(float *vertices,float *normals, float *texCoords){
+        vertices = new float[out_vertices.size()*4];
+        normals = new float[out_vertices.size()*4];
+        texCoords = new float[out_vertices.size()*2];
+        for(int i=0;i<out_vertices.size();i++){
+            vertices[i*4] = out_vertices[i].x;
+            vertices[i*4+1] = out_vertices[i].y;
+            vertices[i*4+2] = out_vertices[i].z;
+            vertices[i*4+3] = out_vertices[i].w;
+        }
+         for(int i=0;i<out_normals.size();i++){
+            normals[i*4] = out_normals[i].x;
+            normals[i*4+1] = out_normals[i].y;
+            normals[i*4+2] = out_normals[i].z;
+            normals[i*4+3] = out_normals[i].w;
+        }
+        for(int i=0;i<out_uvs.size();i++){
+            texCoords[i*2] = out_uvs[i].x;
+            texCoords[i*2+1] = out_uvs[i].y;
+        }
+
+}  
