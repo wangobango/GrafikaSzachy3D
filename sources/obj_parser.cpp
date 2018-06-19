@@ -1,5 +1,5 @@
 #include "../headers/obj_parser.h"
-
+#include<iostream>
 
 Model::Model(const char* path){        
         std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
@@ -64,25 +64,30 @@ Model::Model(const char* path){
     } 
     
 }
-void Model::loadArrays(float *vertices,float *normals, float *texCoords){
-        vertices = new float[out_vertices.size()*4];
-        normals = new float[out_vertices.size()*4];
-        texCoords = new float[out_vertices.size()*2];
+void Model::loadArrays(float **vertices,float **normals, float **texCoords){
+        float *vertices_pom,*normals_pom,*texCoords_pom;
+        vertices_pom = new float[out_vertices.size()*4]; 
+        normals_pom = new float[out_vertices.size()*4];
+        texCoords_pom = new float[out_vertices.size()*2];
+        std::cout<<out_vertices.size()<<endl;
         for(int i=0;i<out_vertices.size();i++){
-            vertices[i*4] = out_vertices[i].x;
-            vertices[i*4+1] = out_vertices[i].y;
-            vertices[i*4+2] = out_vertices[i].z;
-            vertices[i*4+3] = out_vertices[i].w;
+            vertices_pom[i*4] = out_vertices[i].x;
+            vertices_pom[i*4+1] = out_vertices[i].y;
+            vertices_pom[i*4+2] = out_vertices[i].z;
+            vertices_pom[i*4+3] = out_vertices[i].w;
         }
          for(int i=0;i<out_normals.size();i++){
-            normals[i*4] = out_normals[i].x;
-            normals[i*4+1] = out_normals[i].y;
-            normals[i*4+2] = out_normals[i].z;
-            normals[i*4+3] = out_normals[i].w;
+            normals_pom[i*4] = out_normals[i].x;
+            normals_pom[i*4+1] = out_normals[i].y;
+            normals_pom[i*4+2] = out_normals[i].z;
+            normals_pom[i*4+3] = out_normals[i].w;
         }
         for(int i=0;i<out_uvs.size();i++){
-            texCoords[i*2] = out_uvs[i].x;
-            texCoords[i*2+1] = out_uvs[i].y;
+            texCoords_pom[i*2] = out_uvs[i].x;
+            texCoords_pom[i*2+1] = out_uvs[i].y;
         }
+        *vertices = vertices_pom;
+        *normals = normals_pom;
+        *texCoords = texCoords_pom;
 
 }  

@@ -21,6 +21,6 @@ class Model{
     vector< glm::vec4 > out_normals;
     public:
     unsigned int vertex_count;
-    void loadArrays(float *vertices,float *normals, float *texCoords);
+    void loadArrays(float **vertices,float **normals, float **texCoords);
     Model(const char* path);    
 };
