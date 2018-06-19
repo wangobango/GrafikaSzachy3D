@@ -6,6 +6,7 @@ Model::Model(const char* path){
         std::vector< glm::vec4 > temp_vertices;
         std::vector< glm::vec2 > temp_uvs;
         std::vector< glm::vec4 > temp_normals;
+        vertex_count = 0;
 
         FILE * file = fopen(path, "r");
         if( file == NULL ){
