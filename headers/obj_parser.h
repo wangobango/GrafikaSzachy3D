@@ -20,7 +20,10 @@ class Model{
     vector< glm::vec2 > out_uvs;
     vector< glm::vec4 > out_normals;
     public:
-    unsigned int vertex_count;
+    vector< glm::vec4 > GetVertices(){
+        return Model::out_vertices;
+    }
+    unsigned int vertex_count,uvs_count,normals_count;
     void loadArrays(float **vertices,float **normals, float **texCoords);
     Model(const char* path);    
 };

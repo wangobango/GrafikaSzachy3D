@@ -4,9 +4,9 @@
 Model::Model(const char* path){        
         std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
         std::vector< glm::vec4 > temp_vertices;
-        std::vector< glm::vec2 > temp_uvs;
-        std::vector< glm::vec4 > temp_normals;
         vertex_count = 0;
+        uvs_count = 0;
+        normals_count = 0;
 
         FILE * file = fopen(path, "r");
         if( file == NULL ){
@@ -14,7 +14,7 @@ Model::Model(const char* path){
         }
         while (1) 
             {
-                char lineHeader[256];
+                char lineHeader[128];
                 int res = fscanf(file, "%s", lineHeader);
                 if (res == EOF)
                     break;
@@ -28,20 +28,22 @@ Model::Model(const char* path){
                 else if ( strcmp( lineHeader, "vt" ) == 0 ){
                     glm::vec2 uv;
                     fscanf(file, "%f %f\n", &uv.x, &uv.y );
-                    temp_uvs.push_back(uv);
+                    uvs_count++;
+                    out_uvs.push_back(uv);
                 }
                 else if ( strcmp( lineHeader, "vn" ) == 0 ){
                     glm::vec4 normal;
                     fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
                     normal.w = 0.0;
-                    temp_normals.push_back(normal);
+                    normals_count++;
+                    out_normals.push_back(normal);
                 }
                 else if ( strcmp( lineHeader, "f" ) == 0 ){
                     std::string vertex1, vertex2, vertex3;
                     unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
                     int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
                     if (matches != 9){
-                        printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+                        printf("File can't be read \n");
                     }
                     vertexIndices.push_back(vertexIndex[0]);
                     vertexIndices.push_back(vertexIndex[1]);
@@ -64,6 +66,8 @@ Model::Model(const char* path){
     } 
     
 }
+
+
 void Model::loadArrays(float **vertices,float **normals, float **texCoords){
         float *vertices_pom,*normals_pom,*texCoords_pom;
         vertices_pom = new float[out_vertices.size()*4]; 
