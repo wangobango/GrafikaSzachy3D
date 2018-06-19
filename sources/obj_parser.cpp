@@ -14,7 +14,7 @@ Model::Model(const char* path){
         }
         while (1) 
             {
-                char lineHeader[128];
+                char lineHeader[256];
                 int res = fscanf(file, "%s", lineHeader);
                 if (res == EOF)
                     break;
@@ -57,7 +57,7 @@ Model::Model(const char* path){
                 for( unsigned int i=0; i<vertexIndices.size(); i++ ){
                     unsigned int vertexIndex = vertexIndices[i];
                     glm::vec4 vertex = temp_vertices[ vertexIndex-1 ];
-                    this->out_vertices.push_back(vertex);
+                    out_vertices.push_back(vertex);
                 }
 
         fclose(file);
