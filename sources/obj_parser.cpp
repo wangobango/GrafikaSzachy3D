@@ -18,7 +18,7 @@ Model::Model(const char* path){
                 int res = fscanf(file, "%s", lineHeader);
                 if (res == EOF)
                     break;
-                
+                IncVertexCount();
                 if ( strcmp( lineHeader, "v" ) == 0 ){
                     glm::vec4 vertex;
                     fscanf(file, "%f %f %f \n", &vertex.x, &vertex.y, &vertex.z );
