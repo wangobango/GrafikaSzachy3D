@@ -7,15 +7,18 @@ Model::Model(const char* path){
         vertex_count = 0;
         uvs_count = 0;
         normals_count = 0;
-
+        int i=0;
         FILE * file = fopen(path, "r");
         if( file == NULL ){
             printf("Impossible to open the file !\n");
         }
         while (1) 
-            {
+            {   
+                std::cout<<"inside parser"<<i<<endl;
+                i++;
                 char lineHeader[128];
                 int res = fscanf(file, "%s", lineHeader);
+                std::cout<<lineHeader<<endl;
                 if (res == EOF)
                     break;
                 if ( strcmp( lineHeader, "v" ) == 0 ){

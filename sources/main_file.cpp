@@ -163,10 +163,10 @@ void prepareObject(ShaderProgram *shaderProgram) {
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-	Model model("models/szachy.obj");
+	Model model("models/teapot.obj");
 	model.loadArrays(&vertices,&normals,&texCoords);
 	vertexCount = model.vertex_count;
-	std::cout<<vertexCount;
+	//std::cout<<vertexCount;
 
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0, 1); //Czyść ekran na czarno
