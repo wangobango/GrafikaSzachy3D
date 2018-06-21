@@ -163,7 +163,7 @@ void prepareObject(ShaderProgram *shaderProgram) {
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-	Model model("models/secindicators.obj");	
+	Model model("models/goniec3.obj");	
 	model.loadArrays(&vertices,&normals,&texCoords);
 	std::cout<<model.GetVertexCount();
 	//std::cout<<model.GetVertices.size();
