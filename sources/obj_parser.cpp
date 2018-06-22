@@ -1,7 +1,7 @@
 #include "../headers/obj_parser.h"
 #include <iostream>
 #include <fstream>
-#include<string>
+
 
 vector<string> split(const string& str, const char& ch) {
     string next;
@@ -155,10 +155,9 @@ Model::Model(const char* path){
 
 void Model::loadArrays(float **vertices,float **normals, float **texCoords){
         float *vertices_pom,*normals_pom,*texCoords_pom;
-        vertices_pom = new float[out_vertices.size()*4]; 
-        normals_pom = new float[out_vertices.size()*4];
-        texCoords_pom = new float[out_vertices.size()*2];
-        std::cout<<out_vertices.size()<<endl;
+        vertices_pom = new float[vertex_count*4]; 
+        normals_pom = new float[out_normals.size()*4];
+        texCoords_pom = new float[out_uvs.size()*2];
         for(int i=0;i<out_vertices.size();i++){
             vertices_pom[i*4] = out_vertices[i].x;
             vertices_pom[i*4+1] = out_vertices[i].y;

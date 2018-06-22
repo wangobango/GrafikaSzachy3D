@@ -18,7 +18,6 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 */
 
 #define GLM_FORCE_RADIANS
-#define GLM_FORCE_SWIZZLE
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -27,40 +26,44 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdlib.h>
 #include <stdio.h>
-#include "headers/constants.h"
-#include "headers/obj_parser.h"
 #include "headers/lodepng.h"
 #include "headers/shaderprogram.h"
-#include <iostream>
+#include<iostream>
+#include "headers/obj_parser.h"
 
 using namespace glm;
-
-GLuint diffTex; //Zmienna reprezentujaca teksturę
-GLuint normalTex; //Zmienna reprezentujaca teksturę
-GLuint heightTex; //Zmienna reprezentująca teksturę
 
 float speed_x = 0; // [radiany/s]
 float speed_y = 0; // [radiany/s]
 
 float aspect=1; //Stosunek szerokości do wysokości okna
 
+//Uchwyty na shadery
+ShaderProgram *shaderProgram; //Wskaźnik na obiekt reprezentujący program cieniujący.
 
 //Uchwyty na VAO i bufory wierzchołków
 GLuint vao;
 GLuint bufVertices; //Uchwyt na bufor VBO przechowujący tablicę współrzędnych wierzchołków
+GLuint bufColors;  //Uchwyt na bufor VBO przechowujący tablicę kolorów
 GLuint bufNormals; //Uchwyt na bufor VBO przechowujący tablicę wektorów normalnych
 GLuint bufTexCoords; //Uchwyt na bufor VBO przechowujący tablicę współrzędnych teksturowania
-GLuint bufC1; //Uchwyt na bufor VBO przechowujący pierwszą kolumnę moacierzy TBN^-1
-GLuint bufC2; //Uchwyt na bufor VBO przechowujący drugą kolumnę moacierzy TBN^-1
-GLuint bufC3; //Uchwyt na bufor VBO przechowujący trzecią kolumnę moacierzy TBN^-1
 
-//Uchwyty na shadery
-ShaderProgram *shaderProgram; //Wskaźnik na obiekt reprezentujący program cieniujący.
-
+GLuint tex0;
+GLuint tex1;
 
 //Kostka
-float* vertices,*normals, *texCoords;
-int vertexCount;
+/*float* vertices=Models::CubeInternal::vertices;
+float* colors=Models::CubeInternal::colors;
+float* normals=Models::CubeInternal::normals;
+float* texCoords=Models::CubeInternal::texCoords;
+int vertexCount=Models::CubeInternal::vertexCount;*/
+
+//Czajnik
+float* vertices;
+float* colors;
+float* normals;
+float* texCoords;
+int vertexCount=3;
 
 
 //Procedura obsługi błędów
@@ -97,6 +100,45 @@ void windowResize(GLFWwindow* window, int width, int height) {
     }
 }
 
+//Tworzy bufor VBO z tablicy
+GLuint makeBuffer(void *data, int vertexCount, int vertexSize) {
+	GLuint handle;
+
+	glGenBuffers(1,&handle);//Wygeneruj uchwyt na Vertex Buffer Object (VBO), który będzie zawierał tablicę danych
+	glBindBuffer(GL_ARRAY_BUFFER,handle);  //Uaktywnij wygenerowany uchwyt VBO
+	glBufferData(GL_ARRAY_BUFFER, vertexCount*vertexSize, data, GL_STATIC_DRAW);//Wgraj tablicę do VBO
+
+	return handle;
+}
+
+//Przypisuje bufor VBO do atrybutu
+void assignVBOtoAttribute(ShaderProgram *shaderProgram,const char* attributeName, GLuint bufVBO, int vertexSize) {
+	GLuint location=shaderProgram->getAttribLocation(attributeName); //Pobierz numer slotu dla atrybutu
+	glBindBuffer(GL_ARRAY_BUFFER,bufVBO);  //Uaktywnij uchwyt VBO
+	glEnableVertexAttribArray(location); //Włącz używanie atrybutu o numerze slotu zapisanym w zmiennej location
+	glVertexAttribPointer(location,vertexSize,GL_FLOAT, GL_FALSE, 0, NULL); //Dane do slotu location mają być brane z aktywnego VBO
+}
+
+//Przygotowanie do rysowania pojedynczego obiektu
+void prepareObject(ShaderProgram *shaderProgram) {
+	//Zbuduj VBO z danymi obiektu do narysowania
+	bufVertices=makeBuffer(vertices, vertexCount, sizeof(float)*4); //VBO ze współrzędnymi wierzchołków
+	bufColors=makeBuffer(colors, vertexCount, sizeof(float)*4);//VBO z kolorami wierzchołków
+	bufNormals=makeBuffer(normals, vertexCount, sizeof(float)*4);//VBO z wektorami normalnymi wierzchołków
+	bufTexCoords=makeBuffer(texCoords, vertexCount, sizeof(float)*2);//VBO ze współrzędnymi teksturowania
+
+	//Zbuduj VAO wiążący atrybuty z konkretnymi VBO
+	glGenVertexArrays(1,&vao); //Wygeneruj uchwyt na VAO i zapisz go do zmiennej globalnej
+
+	glBindVertexArray(vao); //Uaktywnij nowo utworzony VAO
+
+	assignVBOtoAttribute(shaderProgram,"vertex",bufVertices,4); //"vertex" odnosi się do deklaracji "in vec4 vertex;" w vertex shaderze
+	assignVBOtoAttribute(shaderProgram,"color",bufColors,4); //"color" odnosi się do deklaracji "in vec4 color;" w vertex shaderze
+	assignVBOtoAttribute(shaderProgram,"normal",bufNormals,4); //"normal" odnosi się do deklaracji "in vec4 normal;" w vertex shaderze
+	assignVBOtoAttribute(shaderProgram,"texCoord0",bufTexCoords,2); //"texCoord0" odnosi się do deklaracji "in vec2 texCoord0;" w vertex shaderze
+
+	glBindVertexArray(0); //Dezaktywuj VAO
+}
 
 GLuint readTexture(char* filename) {
   GLuint tex;
@@ -122,89 +164,40 @@ GLuint readTexture(char* filename) {
 }
 
 
-//Tworzy bufor VBO z tablicy
-GLuint makeBuffer(void *data, int vertexCount, int vertexSize) {
-	GLuint handle;
-
-	glGenBuffers(1,&handle);//Wygeneruj uchwyt na Vertex Buffer Object (VBO), który będzie zawierał tablicę danych
-	glBindBuffer(GL_ARRAY_BUFFER,handle);  //Uaktywnij wygenerowany uchwyt VBO
-	glBufferData(GL_ARRAY_BUFFER, vertexCount*vertexSize, data, GL_STATIC_DRAW);//Wgraj tablicę do VBO
-
-	return handle;
-}
-
-//Przypisuje bufor VBO do atrybutu
-void assignVBOtoAttribute(ShaderProgram *shaderProgram,const char* attributeName, GLuint bufVBO, int vertexSize) {
-	GLuint location=shaderProgram->getAttribLocation(attributeName); //Pobierz numer slotu dla atrybutu
-	glBindBuffer(GL_ARRAY_BUFFER,bufVBO);  //Uaktywnij uchwyt VBO
-	glEnableVertexAttribArray(location); //Włącz używanie atrybutu o numerze slotu zapisanym w zmiennej location
-	glVertexAttribPointer(location,vertexSize,GL_FLOAT, GL_FALSE, 0, NULL); //Dane do slotu location mają być brane z aktywnego VBO
-}
-
-//Przygotowanie do rysowania pojedynczego obiektu
-void prepareObject(ShaderProgram *shaderProgram) {
-	//Zbuduj VBO z danymi obiektu do narysowania
-	bufVertices=makeBuffer(vertices, vertexCount, sizeof(float)*4); //VBO ze współrzędnymi wierzchołków
-	bufNormals=makeBuffer(normals, vertexCount, sizeof(float)*4);//VBO z wektorami normalnymi wierzchołków
-	bufTexCoords=makeBuffer(texCoords, vertexCount, sizeof(float)*2);//VBO ze współrzędnymi teksturowania
-	
-	//Zbuduj VAO wiążący atrybuty z konkretnymi VBO
-	glGenVertexArrays(1,&vao); //Wygeneruj uchwyt na VAO i zapisz go do zmiennej globalnej
-
-	glBindVertexArray(vao); //Uaktywnij nowo utworzony VAO
-
-	assignVBOtoAttribute(shaderProgram,"vertex",bufVertices,4); //"vertex" odnosi się do deklaracji "in vec4 vertex;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"normal",bufNormals,4); //"normal" odnosi się do deklaracji "in vec4 normal;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"texCoord0",bufTexCoords,2); //"texCoord0" odnosi się do deklaracji "in vec2 texCoord0;" w vertex shaderze
-	
-	glBindVertexArray(0); //Dezaktywuj VAO
-}
-
-
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-	Model model("models/goniec3.obj");	
-	model.loadArrays(&vertices,&normals,&texCoords);
-	std::cout<<model.GetVertexCount();
-	//std::cout<<model.GetVertices.size();
-
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
+	
+	
 	glClearColor(0, 0, 0, 1); //Czyść ekran na czarno
 	glEnable(GL_DEPTH_TEST); //Włącz używanie Z-Bufora
 	glfwSetKeyCallback(window, key_callback); //Zarejestruj procedurę obsługi klawiatury
-	glfwSetFramebufferSizeCallback(window,windowResize); //Zarejestruj procedurę obsługi zmiany rozmiaru bufora ramki
+    glfwSetFramebufferSizeCallback(window,windowResize); //Zarejestruj procedurę obsługi zmiany rozmiaru bufora ramki
+	
 
-	shaderProgram=new ShaderProgram("vshader.glsl",NULL,"fshader.glsl"); //Wczytaj program cieniujący
+	shaderProgram=new ShaderProgram("sources/vshader.vert",NULL,"sources/fshader.glsl"); //Wczytaj program cieniujący
+	tex0=readTexture("texures/metal.png");
+//	tex1=readTexture("metal_spec.png");
 
-	prepareObject(shaderProgram);
-
-	diffTex=readTexture("bricks2_diffuse.png");
-	normalTex=readTexture("bricks2_normal.png");
-    heightTex=readTexture("bricks2_height.png");
+    prepareObject(shaderProgram);
 }
 
 //Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram() {
 	delete shaderProgram; //Usunięcie programu cieniującego
-	
-	glDeleteVertexArrays(1,&vao); //Wykasuj VAO
-	
-	//Wykasuj bufory  VBO
-	glDeleteBuffers(1,&bufVertices);
-	glDeleteBuffers(1,&bufNormals);
-    glDeleteBuffers(1,&bufTexCoords);
-	glDeleteBuffers(1,&bufC1);
-    glDeleteBuffers(1,&bufC2);
-	glDeleteBuffers(1,&bufC3);
-	
-    //Wykasuj tekstury
-	glDeleteTextures(1,&diffTex);
-	glDeleteTextures(1,&normalTex);
-	glDeleteTextures(1,&heightTex);
-
+	delete vertices;
+	delete normals;
+	delete texCoords;
+	glDeleteVertexArrays(1,&vao); //Usunięcie vao
+	glDeleteBuffers(1,&bufVertices); //Usunięcie VBO z wierzchołkami
+	glDeleteBuffers(1,&bufColors); //Usunięcie VBO z kolorami
+	glDeleteBuffers(1,&bufNormals); //Usunięcie VBO z wektorami normalnymi
+	glDeleteBuffers(1,&bufTexCoords); //Usunięcie VBO ze współrzednymi teksturowania
+	glDeleteTextures(1,&tex0); //Usunięcie tekstury z tex0
+	glDeleteTextures(1,&tex1); //Usunięcie tekstury z tex1
 }
 
-void drawObject(ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4 mM) {
+void drawObject(GLuint vao, ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4 mM) {
 	//Włączenie programu cieniującego, który ma zostać użyty do rysowania
 	//W tym programie wystarczyłoby wywołać to raz, w setupShaders, ale chodzi o pokazanie,
 	//że mozna zmieniać program cieniujący podczas rysowania jednej sceny
@@ -213,38 +206,28 @@ void drawObject(ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4 mM) {
 	//Przekaż do shadera macierze P,V i M.
 	//W linijkach poniżej, polecenie:
 	//  shaderProgram->getUniformLocation("P")
-	//pobiera numer przypisany zmiennej jednorodnej o podanej nazwie
+	//pobiera numer slotu odpowiadającego zmiennej jednorodnej o podanej nazwie
 	//UWAGA! "P" w powyższym poleceniu odpowiada deklaracji "uniform mat4 P;" w vertex shaderze,
 	//a mP w glm::value_ptr(mP) odpowiada argumentowi  "mat4 mP;" TYM pliku.
 	//Cała poniższa linijka przekazuje do zmiennej jednorodnej P w vertex shaderze dane z argumentu mP niniejszej funkcji
 	//Pozostałe polecenia działają podobnie.
-	//Poniższe polecenia są z grubsza odpowiednikami glLoadMatrixf ze starego opengla
 	glUniformMatrix4fv(shaderProgram->getUniformLocation("P"),1, false, glm::value_ptr(mP));
 	glUniformMatrix4fv(shaderProgram->getUniformLocation("V"),1, false, glm::value_ptr(mV));
 	glUniformMatrix4fv(shaderProgram->getUniformLocation("M"),1, false, glm::value_ptr(mM));
+	glUniform1i(shaderProgram->getUniformLocation("textureMap0"),0); //Powiązanie textureMap0 we fragment shaderze z jednostką teksturowania nr 0
 
-	//Powiąż zmienne typu sampler2D z jednostkami teksturującymi
-	glUniform1i(shaderProgram->getUniformLocation("diffuseMap"),0);
-	glUniform1i(shaderProgram->getUniformLocation("normalMap"),1);
-	glUniform1i(shaderProgram->getUniformLocation("heightMap"),2);
-
-
-	//Przypisz tekstury do jednostek teksturujących
+	//Powiąż teksturę z uchwytem w tex0 z zerową jednostką teksturującą
 	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,diffTex);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D,normalTex);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D,heightTex);
+	glBindTexture(GL_TEXTURE_2D,tex0);
+	//Powiąż teksturę z uchwytem w tex1 z zerową jednostką teksturującą
 
-    //Aktywuj VAO  (powiązania pomiędzy atrybutami i VBO)
-    glBindVertexArray(vao);
+	//Uaktywnienie VAO i tym samym uaktywnienie predefiniowanych w tym VAO powiązań slotów atrybutów z tablicami z danymi
+	glBindVertexArray(vao);
 
 	//Narysowanie obiektu
 	glDrawArrays(GL_TRIANGLES,0,vertexCount);
 
-
-	//Dezaktywuj VAO
+	//Posprzątanie po sobie (niekonieczne w sumie jeżeli korzystamy z VAO dla każdego rysowanego obiektu)
 	glBindVertexArray(0);
 }
 
@@ -252,12 +235,12 @@ void drawObject(ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4 mM) {
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów i głębokości
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów
 
-	glm::mat4 P = glm::perspective(50 * PI / 180, aspect, 1.0f, 50.0f); //Wylicz macierz rzutowania
+	glm::mat4 P = glm::perspective(50 * 3.14f / 180, aspect, 1.0f, 50.0f); //Wylicz macierz rzutowania
 
 	glm::mat4 V = glm::lookAt( //Wylicz macierz widoku
-		glm::vec3(0.0f, 0.0f, -5.0f),
+		glm::vec3(0.0f, 0.0f, -10.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -268,7 +251,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	M = glm::rotate(M, angle_y, glm::vec3(0, 1, 0));
 
 	//Narysuj obiekt
-	drawObject(shaderProgram,P,V,M);
+	drawObject(vao,shaderProgram,P,V,M);
 
 	//Przerzuć tylny bufor na przedni
 	glfwSwapBuffers(window);
@@ -279,16 +262,23 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 int main(void)
 {
+	 Model model("models/goniec3.obj");
+	model.loadArrays(&vertices,&normals,&texCoords);
+	vertexCount = model.GetVertexCount();
+
 	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno
 
 	glfwSetErrorCallback(error_callback);//Zarejestruj procedurę obsługi błędów
+
 
 	if (!glfwInit()) { //Zainicjuj bibliotekę GLFW
 		fprintf(stderr, "Nie można zainicjować GLFW.\n");
 		exit(EXIT_FAILURE);
 	}
+	std::cout<<"control"<<endl;
 
 	window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+	std::cout<<"control 2"<<endl;
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
