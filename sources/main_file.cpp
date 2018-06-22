@@ -277,6 +277,9 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 int main(void)
 {
+	 Model model("models/goniec3.obj");
+	model.loadArrays(&vertices,&normals,&texCoords);
+	vertexCount = model.GetVertexCount();
 
 	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno
 
