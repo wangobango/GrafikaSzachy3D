@@ -163,11 +163,10 @@ void prepareObject(ShaderProgram *shaderProgram) {
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-
-	Model model("models/goniec.obj");
-	//model.loadArrays(&vertices,&normals,&texCoords);
-	vertexCount = model.GetVertexCount();
-	//std::cout<<vertexCount;
+	Model model("models/goniec3.obj");	
+	model.loadArrays(&vertices,&normals,&texCoords);
+	std::cout<<model.GetVertexCount();
+	//std::cout<<model.GetVertices.size();
 
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0, 1); //Czyść ekran na czarno

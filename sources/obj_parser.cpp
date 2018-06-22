@@ -1,5 +1,26 @@
 #include "../headers/obj_parser.h"
-#include<iostream>
+#include <iostream>
+#include <fstream>
+#include<string>
+
+vector<string> split(const string& str, const char& ch) {
+    string next;
+    vector<string> result;
+
+    for (string::const_iterator it = str.begin(); it != str.end(); it++) {
+        if (*it == ch) {
+            if (!next.empty()) {
+                result.push_back(next);
+                next.clear();
+            }
+        } else {
+            next += *it;
+        }
+    }
+    if (!next.empty())
+         result.push_back(next);
+    return result;
+}
 
 Model::Model(const char* path){        
         std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
@@ -8,46 +29,110 @@ Model::Model(const char* path){
         uvs_count = 0;
         normals_count = 0;
 
-        FILE * file = fopen(path, "r");
-        if( file == NULL ){
-            printf("Impossible to open the file !\n");
-        }
-        while (1) 
+        fstream file;
+        file.open(path,std::ios::in);
+        string dane;
+        if(file.good()) cout<<"udalo sie otworzyc plik"<<endl;
+        else cout<<"nie udalo sie otworzyc pliku"<<endl;
+
+
+        while (!file.eof()) 
             {
-                char lineHeader[128];
-                int res = fscanf(file, "%s", lineHeader);
-                if (res == EOF)
-                    break;
-                
-                if ( strcmp( lineHeader, "v" ) == 0 ){
+                // char lineHeader[128];
+                // int res = fscanf(file, "%s", lineHeader);
+                // if (res == EOF)
+                //     break;
+                // IncVertexCount();
+                // if ( strcmp( lineHeader, "v" ) == 0 ){
+                //     glm::vec4 vertex;
+                //     fscanf(file, "%f %f %f \n", &vertex.x, &vertex.y, &vertex.z );
+                //     vertex.w = 1.0;
+                //     IncVertexCount();
+                //     temp_vertices.push_back(vertex);
+                // }
+                // else if ( strcmp( lineHeader, "vt" ) == 0 ){
+                //     glm::vec2 uv;
+                //     fscanf(file, "%f %f\n", &uv.x, &uv.y );
+                //     uvs_count++;
+                //     //out_uvs.push_back(uv);
+                //     AddUv(uv);
+                // }
+                // else if ( strcmp( lineHeader, "vn" ) == 0 ){
+                //     glm::vec4 normal;
+                //     fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+                //     normal.w = 0.0;
+                //     normals_count++;
+                //     //out_normals.push_back(normal);
+                //     AddNormal(normal);
+                // }
+                // else if ( strcmp( lineHeader, "f" ) == 0 ){
+                //     std::string vertex1, vertex2, vertex3;
+                //     unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
+                //     int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
+                //     if (matches != 9){
+                //         printf("File can't be read \n");
+                //     }
+                //     vertexIndices.push_back(vertexIndex[0]);
+                //     vertexIndices.push_back(vertexIndex[1]);
+                //     vertexIndices.push_back(vertexIndex[2]);
+                //     uvIndices    .push_back(uvIndex[0]);
+                //     uvIndices    .push_back(uvIndex[1]);
+                //     uvIndices    .push_back(uvIndex[2]);
+                //     normalIndices.push_back(normalIndex[0]);
+                //     normalIndices.push_back(normalIndex[1]);
+                //     normalIndices.push_back(normalIndex[2]);
+                // }
+                file>>dane;
+                if ( dane == "v"  ){
                     glm::vec4 vertex;
-                    fscanf(file, "%f %f %f \n", &vertex.x, &vertex.y, &vertex.z );
+                    for(int i =0; i<3;i++){
+                        file>>dane;
+                        switch(i){
+                            case 0: vertex.x = stof(dane);
+                            case 1: vertex.y = stof(dane);
+                            case 2: vertex.z = stof(dane);
+                        }                        
+                    }
                     vertex.w = 1.0;
                     IncVertexCount();
-                    temp_vertices.push_back(vertex);
+                    //temp_vertices.push_back(vertex);
+                    AddVertice(vertex);
                 }
-                else if ( strcmp( lineHeader, "vt" ) == 0 ){
+                else if (dane== "vt" ) {
                     glm::vec2 uv;
-                    fscanf(file, "%f %f\n", &uv.x, &uv.y );
-                    uvs_count++;
-                    //out_uvs.push_back(uv);
+                    for(int i =0; i<2;i++){
+                        file>>dane;
+                        switch(i){
+                            case 0: uv.x = stof(dane);
+                            case 1: uv.y = stof(dane);
+                        }                        
+                    }
                     AddUv(uv);
                 }
-                else if ( strcmp( lineHeader, "vn" ) == 0 ){
+                else if ( dane== "vn"  ){
                     glm::vec4 normal;
-                    fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+                    for(int i =0; i<3;i++){
+                        file>>dane;
+                        switch(i){
+                            case 0: normal.x = stof(dane);
+                            case 1: normal.y = stof(dane);
+                            case 2: normal.z = stof(dane);
+                        }                        
+                    }
                     normal.w = 0.0;
-                    normals_count++;
-                    //out_normals.push_back(normal);
                     AddNormal(normal);
                 }
-                else if ( strcmp( lineHeader, "f" ) == 0 ){
-                    std::string vertex1, vertex2, vertex3;
+                else if ( dane == "f" ){
                     unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-                    int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
-                    if (matches != 9){
-                        printf("File can't be read \n");
-                    }
+                    // Wersja jesli dane oddzielone /
+                    for(int i=0;i<2;i++){
+                        file>>dane;
+                        vector<string> temp = split(dane,'/');
+                        vertexIndex[i] = stoul(temp[0]);
+                        uvIndex[i] = stoul(temp[1]);
+                        normalIndex[i] = stoul(temp[2]);
+                    }     
+
                     vertexIndices.push_back(vertexIndex[0]);
                     vertexIndices.push_back(vertexIndex[1]);
                     vertexIndices.push_back(vertexIndex[2]);
@@ -57,19 +142,14 @@ Model::Model(const char* path){
                     normalIndices.push_back(normalIndex[0]);
                     normalIndices.push_back(normalIndex[1]);
                     normalIndices.push_back(normalIndex[2]);
-                }
-
-                for( unsigned int i=0; i<vertexIndices.size(); i++ ){
-                    unsigned int vertexIndex = vertexIndices[i];
-                    glm::vec4 vertex = temp_vertices[ vertexIndex-1 ];
-                    //out_vertices.push_back(vertex);
-                    AddVertice(vertex);
-                }
-
-        
-    }
-    fclose(file); 
-    
+                }         
+    } 
+    // for( unsigned int i=0; i<vertexIndices.size(); i++ ){
+    //             unsigned int vertexIndex = vertexIndices[i];
+    //             glm::vec4 vertex = temp_vertices[ vertexIndex-1 ];
+    //             AddVertice(vertex);
+    //         }
+    file.close();    
 }
 
 
