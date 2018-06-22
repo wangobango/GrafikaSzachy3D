@@ -166,21 +166,6 @@ GLuint readTexture(char* filename) {
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-	Model model("models/teapot.obj");
-	model.loadArrays(&vertices,&normals,&texCoords);
-	vertexCount = model.vertex_count;
-	//std::cout<<vertexCount;
-=======
-	Model model("models/goniec2.obj");	
-	model.loadArrays(&vertices,&normals,&texCoords);
-	std::cout<<model.GetVertexCount();
-	//std::cout<<model.GetVertices.size();
->>>>>>> 0cddba546b02dc83677edb96f33597bb6bc04de4
-
-=======
->>>>>>> emil
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	
 	
