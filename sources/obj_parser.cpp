@@ -66,8 +66,9 @@ Model::Model(const char* path){
                     AddVertice(vertex);
                 }
 
-        fclose(file);
-    } 
+        
+    }
+    fclose(file); 
     
 }
 
