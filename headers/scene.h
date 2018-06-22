@@ -1,20 +1,16 @@
-
-
 #ifndef SCENE_H
 #define SCENE_H
 
-#include<vector>
-
-class Scene {
+#include "obj_parser.h"
+#include <vector>
+class scene {
 private:
     vector<Model> allModels;
+    Model* matrix[8][8];
+public: 
+    Model &getFromPosition(int x,int y);
 
-public:
-    void makeMove;
-    void 
-}
-
-
+};
 
 
 #endif

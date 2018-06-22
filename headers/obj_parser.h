@@ -22,7 +22,7 @@ class Model{
     vector< glm::vec4 > out_vertices;
     vector< glm::vec2 > out_uvs;
     vector< glm::vec4 > out_normals;
-    unsigned int vertex_count,uvs_count,normals_count;
+    int vertex_count,uvs_count,normals_count;
     
     public:
     
@@ -51,7 +51,7 @@ class Model{
         this->vertex_count++;
     }
 
-    unsigned int GetVertexCount(){
+    int GetVertexCount(){
         return this->vertex_count;
     }
 

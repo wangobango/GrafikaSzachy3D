@@ -6,4 +6,4 @@ HPATH=headers
 
 
 main_file: $(FILES) $(HEADERS)
-	g++ -o main_file $(FILES)  $(LIBS) -I.
+	g++ -o main_file $(FILES)  $(LIBS) -I .
