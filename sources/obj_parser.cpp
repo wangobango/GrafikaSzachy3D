@@ -23,7 +23,7 @@ vector<string> split(const string& str, const char& ch) {
 }
 
 Model::Model(const char* path){        
-        std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+       
         std::vector< glm::vec4 > temp_vertices;
         vertex_count = 0;
         uvs_count = 0;
@@ -94,7 +94,7 @@ Model::Model(const char* path){
                         }                        
                     }
                     vertex.w = 1.0;
-                    IncVertexCount();
+                    //IncVertexCount();
                     //temp_vertices.push_back(vertex);
                     AddVertice(vertex);
                 }
@@ -125,12 +125,13 @@ Model::Model(const char* path){
                 else if ( dane == "f" ){
                     unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
                     // Wersja jesli dane oddzielone /
-                    for(int i=0;i<2;i++){
+                    for(int i=0;i<3;i++){
                         file>>dane;
                         vector<string> temp = split(dane,'/');
                         vertexIndex[i] = stoul(temp[0]);
                         uvIndex[i] = stoul(temp[1]);
                         normalIndex[i] = stoul(temp[2]);
+                        IncVertexCount();
                     }     
 
                     vertexIndices.push_back(vertexIndex[0]);
@@ -156,23 +157,23 @@ Model::Model(const char* path){
 void Model::loadArrays(float **vertices,float **normals, float **texCoords){
         float *vertices_pom,*normals_pom,*texCoords_pom;
         vertices_pom = new float[vertex_count*4]; 
-        normals_pom = new float[out_normals.size()*4];
-        texCoords_pom = new float[out_uvs.size()*2];
-        for(int i=0;i<out_vertices.size();i++){
-            vertices_pom[i*4] = out_vertices[i].x;
-            vertices_pom[i*4+1] = out_vertices[i].y;
-            vertices_pom[i*4+2] = out_vertices[i].z;
-            vertices_pom[i*4+3] = out_vertices[i].w;
+        normals_pom = new float[vertex_count*4];
+        texCoords_pom = new float[vertex_count*2];
+        for(int i=0;i<vertex_count;i++){
+            vertices_pom[i*4] = out_vertices[vertexIndices[i]-1].x;
+            vertices_pom[i*4+1] = out_vertices[vertexIndices[i]-1].y;
+            vertices_pom[i*4+2] = out_vertices[vertexIndices[i]-1].z;
+            vertices_pom[i*4+3] = out_vertices[vertexIndices[i]-1].w;
         }
-         for(int i=0;i<out_normals.size();i++){
-            normals_pom[i*4] = out_normals[i].x;
-            normals_pom[i*4+1] = out_normals[i].y;
-            normals_pom[i*4+2] = out_normals[i].z;
-            normals_pom[i*4+3] = out_normals[i].w;
+         for(int i=0;i<vertex_count;i++){
+            normals_pom[i*4] = out_normals[normalIndices[i]].x;
+            normals_pom[i*4+1] = out_normals[normalIndices[i]].y;
+            normals_pom[i*4+2] = out_normals[normalIndices[i]].z;
+            normals_pom[i*4+3] = out_normals[normalIndices[i]].w;
         }
-        for(int i=0;i<out_uvs.size();i++){
-            texCoords_pom[i*2] = out_uvs[i].x;
-            texCoords_pom[i*2+1] = out_uvs[i].y;
+        for(int i=0;i<vertex_count;i++){
+            texCoords_pom[i*2] = out_uvs[uvIndices[i]].x;
+            texCoords_pom[i*2+1] = out_uvs[uvIndices[i]].y;
         }
         *vertices = vertices_pom;
         *normals = normals_pom;

@@ -14,9 +14,9 @@ in vec2 iTexCoord0; //wspolrzedne teksturowania
 void main(void) {
  vec4 ka=vec4(0,0,0,0); //Kolor obiektu w swietle otoczenia
     vec4 kd=texture(textureMap0,iTexCoord0); //Kolor obiektu w swietle rozproszonym
-    vec4 ks=vec4(0,0,0,0); //Kolor obiektu w swietle odbitym
+    vec4 ks=kd; //Kolor obiektu w swietle odbitym
 
-    vec4 la=vec4(0,0,0,0); //Kolor swiatla otoczenia
+    vec4 la=vec4(0,0,1,0); //Kolor swiatla otoczenia
     vec4 ld=vec4(1,1,1,1); //Kolor swiatla rozpraszanego
     vec4 ls=vec4(1,1,1,0); //Kolor swiatla odbijanego
 

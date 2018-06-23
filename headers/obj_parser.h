@@ -22,6 +22,7 @@ class Model{
     vector< glm::vec4 > out_vertices;
     vector< glm::vec2 > out_uvs;
     vector< glm::vec4 > out_normals;
+    vector< unsigned int > vertexIndices, uvIndices, normalIndices;
     int vertex_count,uvs_count,normals_count;
     
     public:

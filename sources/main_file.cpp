@@ -149,7 +149,7 @@ GLuint readTexture(char* filename) {
   unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
   //Wczytaj obrazek
   unsigned error = lodepng::decode(image, width, height, filename);
-
+	cout<<error<<endl;
   //Import do pamięci karty graficznej
   glGenTextures(1,&tex); //Zainicjuj jeden uchwyt
   glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
@@ -176,7 +176,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	
 
 	shaderProgram=new ShaderProgram("sources/vshader.vert",NULL,"sources/fshader.glsl"); //Wczytaj program cieniujący
-	tex0=readTexture("texures/metal.png");
+	tex0=readTexture("metal.png");
 //	tex1=readTexture("metal_spec.png");
 
     prepareObject(shaderProgram);
@@ -194,7 +194,6 @@ void freeOpenGLProgram() {
 	glDeleteBuffers(1,&bufNormals); //Usunięcie VBO z wektorami normalnymi
 	glDeleteBuffers(1,&bufTexCoords); //Usunięcie VBO ze współrzednymi teksturowania
 	glDeleteTextures(1,&tex0); //Usunięcie tekstury z tex0
-	glDeleteTextures(1,&tex1); //Usunięcie tekstury z tex1
 }
 
 void drawObject(GLuint vao, ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4 mM) {
@@ -240,8 +239,8 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glm::mat4 P = glm::perspective(50 * 3.14f / 180, aspect, 1.0f, 50.0f); //Wylicz macierz rzutowania
 
 	glm::mat4 V = glm::lookAt( //Wylicz macierz widoku
-		glm::vec3(0.0f, 0.0f, -10.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 3.0f, -10.0f),
+		glm::vec3(0.0f, 3.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
 
@@ -265,7 +264,7 @@ int main(void)
 	 Model model("models/goniec3.obj");
 	model.loadArrays(&vertices,&normals,&texCoords);
 	vertexCount = model.GetVertexCount();
-
+	
 	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno
 
 	glfwSetErrorCallback(error_callback);//Zarejestruj procedurę obsługi błędów
@@ -275,10 +274,8 @@ int main(void)
 		fprintf(stderr, "Nie można zainicjować GLFW.\n");
 		exit(EXIT_FAILURE);
 	}
-	std::cout<<"control"<<endl;
 
 	window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
-	std::cout<<"control 2"<<endl;
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
