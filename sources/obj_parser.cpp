@@ -166,14 +166,14 @@ void Model::loadArrays(float **vertices,float **normals, float **texCoords){
             vertices_pom[i*4+3] = out_vertices[vertexIndices[i]-1].w;
         }
          for(int i=0;i<vertex_count;i++){
-            normals_pom[i*4] = out_normals[normalIndices[i]].x;
-            normals_pom[i*4+1] = out_normals[normalIndices[i]].y;
-            normals_pom[i*4+2] = out_normals[normalIndices[i]].z;
-            normals_pom[i*4+3] = out_normals[normalIndices[i]].w;
+            normals_pom[i*4] = out_normals[normalIndices[i]-1].x;
+            normals_pom[i*4+1] = out_normals[normalIndices[i]-1].y;
+            normals_pom[i*4+2] = out_normals[normalIndices[i]-1].z;
+            normals_pom[i*4+3] = out_normals[normalIndices[i]-1].w;
         }
         for(int i=0;i<vertex_count;i++){
-            texCoords_pom[i*2] = out_uvs[uvIndices[i]].x;
-            texCoords_pom[i*2+1] = out_uvs[uvIndices[i]].y;
+            texCoords_pom[i*2] = out_uvs[uvIndices[i]-1].x;
+            texCoords_pom[i*2+1] = out_uvs[uvIndices[i]-1].y;
         }
         *vertices = vertices_pom;
         *normals = normals_pom;
