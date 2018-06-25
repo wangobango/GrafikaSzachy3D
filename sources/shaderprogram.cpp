@@ -71,7 +71,7 @@ GLuint ShaderProgram::loadShader(GLenum shaderType,const char* fileName) {
 ShaderProgram::ShaderProgram(const char* vertexShaderFile,const char* geometryShaderFile,const char* fragmentShaderFile) {
 	//Wczytaj vertex shader
 	printf("Loading vertex shader...\n");
-	vertexShader=loadShader(GL_VERTEX_SHADER,vertexShaderFile); //tutaj sie wywala
+	vertexShader=loadShader(GL_VERTEX_SHADER,vertexShaderFile); 
 	
 	//Wczytaj geometry shader
 	if (geometryShaderFile!=NULL) {

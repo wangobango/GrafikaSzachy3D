@@ -30,6 +30,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "headers/shaderprogram.h"
 #include<iostream>
 #include "headers/obj_parser.h"
+#include "headers/bishop.h"
 
 using namespace glm;
 
@@ -49,7 +50,7 @@ GLuint bufNormals; //Uchwyt na bufor VBO przechowujący tablicę wektorów norma
 GLuint bufTexCoords; //Uchwyt na bufor VBO przechowujący tablicę współrzędnych teksturowania
 
 GLuint tex0;
-GLuint tex1;
+GLuint tex1,tex2;
 
 //Kostka
 /*float* vertices=Models::CubeInternal::vertices;
@@ -123,7 +124,6 @@ void assignVBOtoAttribute(ShaderProgram *shaderProgram,const char* attributeName
 void prepareObject(ShaderProgram *shaderProgram) {
 	//Zbuduj VBO z danymi obiektu do narysowania
 	bufVertices=makeBuffer(vertices, vertexCount, sizeof(float)*4); //VBO ze współrzędnymi wierzchołków
-	bufColors=makeBuffer(colors, vertexCount, sizeof(float)*4);//VBO z kolorami wierzchołków
 	bufNormals=makeBuffer(normals, vertexCount, sizeof(float)*4);//VBO z wektorami normalnymi wierzchołków
 	bufTexCoords=makeBuffer(texCoords, vertexCount, sizeof(float)*2);//VBO ze współrzędnymi teksturowania
 
@@ -133,16 +133,26 @@ void prepareObject(ShaderProgram *shaderProgram) {
 	glBindVertexArray(vao); //Uaktywnij nowo utworzony VAO
 
 	assignVBOtoAttribute(shaderProgram,"vertex",bufVertices,4); //"vertex" odnosi się do deklaracji "in vec4 vertex;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"color",bufColors,4); //"color" odnosi się do deklaracji "in vec4 color;" w vertex shaderze
 	assignVBOtoAttribute(shaderProgram,"normal",bufNormals,4); //"normal" odnosi się do deklaracji "in vec4 normal;" w vertex shaderze
 	assignVBOtoAttribute(shaderProgram,"texCoord0",bufTexCoords,2); //"texCoord0" odnosi się do deklaracji "in vec2 texCoord0;" w vertex shaderze
 
 	glBindVertexArray(0); //Dezaktywuj VAO
 }
 
-GLuint readTexture(char* filename) {
+GLuint readTexture(char* filename,int pos) {
   GLuint tex;
-  glActiveTexture(GL_TEXTURE0);
+  switch(pos){
+	  case 0: {
+		  glActiveTexture(GL_TEXTURE0);
+	  }
+	  case 1: {
+		  glActiveTexture(GL_TEXTURE1);
+	  }
+	  case 2: {
+		  glActiveTexture(GL_TEXTURE2);
+	  }
+  }
+  
 
   //Wczytanie do pamięci komputera
   std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
@@ -173,13 +183,17 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glEnable(GL_DEPTH_TEST); //Włącz używanie Z-Bufora
 	glfwSetKeyCallback(window, key_callback); //Zarejestruj procedurę obsługi klawiatury
     glfwSetFramebufferSizeCallback(window,windowResize); //Zarejestruj procedurę obsługi zmiany rozmiaru bufora ramki
-	
+	cout<<"control main"<<endl;
+
 
 	shaderProgram=new ShaderProgram("sources/vshader.vert",NULL,"sources/fshader.glsl"); //Wczytaj program cieniujący
-	tex0=readTexture("szachownica.png");
-//	tex1=readTexture("metal_spec.png");
+	tex0=readTexture("white.png",0);
+	tex1=readTexture("black.png",1);
+	tex2=readTexture("szachownica.png",2);
 
-    prepareObject(shaderProgram);
+//	tex1=readTexture("metal_spec.png");
+	
+    //prepareObject(shaderProgram);
 }
 
 //Zwolnienie zasobów zajętych przez program
@@ -231,7 +245,7 @@ void drawObject(GLuint vao, ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4
 }
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
+void drawScene(GLFWwindow* window, float angle_x, float angle_y, Bishop *model) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów
@@ -249,11 +263,14 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	M = glm::rotate(M, angle_x, glm::vec3(1, 0, 0));
 	M = glm::rotate(M, angle_y, glm::vec3(0, 1, 0));
 	//V=glm::scale(V,vec3(-1.0f,-1.0f,-1.0f));
-	V=glm::translate(V,glm::vec3(0,0.0f,30.0f));
-	
+	V=glm::rotate(V,-45*3.14f/180,vec3(1.0f,0.0f,0.0f));
+	V=glm::translate(V,glm::vec3(0,0.0f,5.0f));
 	//Narysuj obiekt
-	drawObject(vao,shaderProgram,P,V,M);
-
+	//drawObject(vao,shaderProgram,P,V,M);
+	model->resetM();
+	model->rotate(angle_x,glm::vec3(1, 0, 0));
+	model->rotate(angle_y,glm::vec3(0, 1, 0));
+	model->draw(P,V);
 	//Przerzuć tylny bufor na przedni
 	glfwSwapBuffers(window);
 
@@ -263,9 +280,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 int main(void)
 {
-	 Model model("models/szachownica.obj");
-	model.loadArrays(&vertices,&normals,&texCoords);
-	vertexCount = model.GetVertexCount();
+	
 	
 	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno
 
@@ -295,6 +310,7 @@ int main(void)
 	}
 
 	initOpenGLProgram(window); //Operacje inicjujące
+	Bishop model(0,shaderProgram,tex1);
 
 	float angle_x = 0; //Kąt obrotu obiektu
 	float angle_y = 0; //Kąt obrotu obiektu
@@ -307,7 +323,7 @@ int main(void)
 		angle_x += speed_x*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		angle_y += speed_y*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		glfwSetTime(0); //Wyzeruj licznik czasu
-		drawScene(window,angle_x,angle_y); //Wykonaj procedurę rysującą
+		drawScene(window,angle_x,angle_y,&model); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 
