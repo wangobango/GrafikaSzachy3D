@@ -176,7 +176,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	
 
 	shaderProgram=new ShaderProgram("sources/vshader.vert",NULL,"sources/fshader.glsl"); //Wczytaj program cieniujący
-	tex0=readTexture("metal.png");
+	tex0=readTexture("szachownica.png");
 //	tex1=readTexture("metal_spec.png");
 
     prepareObject(shaderProgram);
@@ -236,19 +236,21 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów
 
-	glm::mat4 P = glm::perspective(50 * 3.14f / 180, aspect, 1.0f, 50.0f); //Wylicz macierz rzutowania
+	glm::mat4 P = glm::perspective(90 * 3.14f / 180, aspect, 1.0f, 200.0f); //Wylicz macierz rzutowania
 
 	glm::mat4 V = glm::lookAt( //Wylicz macierz widoku
-		glm::vec3(0.0f, 3.0f, -10.0f),
-		glm::vec3(0.0f, 3.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, -5.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
-
+	
 	//Wylicz macierz modelu rysowanego obiektu
 	glm::mat4 M = glm::mat4(1.0f);
 	M = glm::rotate(M, angle_x, glm::vec3(1, 0, 0));
 	M = glm::rotate(M, angle_y, glm::vec3(0, 1, 0));
-
+	//V=glm::scale(V,vec3(-1.0f,-1.0f,-1.0f));
+	V=glm::translate(V,glm::vec3(0,0.0f,30.0f));
+	
 	//Narysuj obiekt
 	drawObject(vao,shaderProgram,P,V,M);
 
@@ -261,7 +263,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 int main(void)
 {
-	 Model model("models/goniec3.obj");
+	 Model model("models/szachownica.obj");
 	model.loadArrays(&vertices,&normals,&texCoords);
 	vertexCount = model.GetVertexCount();
 	
