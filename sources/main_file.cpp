@@ -31,6 +31,8 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include<iostream>
 #include "headers/obj_parser.h"
 #include "headers/bishop.h"
+#include "headers/chessboard.h"
+#include "headers/scene.h"
 
 using namespace glm;
 
@@ -51,7 +53,7 @@ GLuint bufTexCoords; //Uchwyt na bufor VBO przechowujący tablicę współrzędn
 
 GLuint tex0;
 GLuint tex1,tex2;
-
+scene *v_scene;
 //Kostka
 /*float* vertices=Models::CubeInternal::vertices;
 float* colors=Models::CubeInternal::colors;
@@ -192,7 +194,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	tex2=readTexture("szachownica.png",2);
 
 //	tex1=readTexture("metal_spec.png");
-	
+	v_scene = new scene(shaderProgram,tex0,tex1,tex2);
     //prepareObject(shaderProgram);
 }
 
@@ -202,6 +204,7 @@ void freeOpenGLProgram() {
 	delete vertices;
 	delete normals;
 	delete texCoords;
+	delete v_scene;
 	glDeleteVertexArrays(1,&vao); //Usunięcie vao
 	glDeleteBuffers(1,&bufVertices); //Usunięcie VBO z wierzchołkami
 	glDeleteBuffers(1,&bufColors); //Usunięcie VBO z kolorami
@@ -245,9 +248,11 @@ void drawObject(GLuint vao, ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4
 }
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window, float angle_x, float angle_y, Bishop *model) {
+void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
-
+	Model *model;
+	model = v_scene->getChessboard();
+	
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów
 
 	glm::mat4 P = glm::perspective(90 * 3.14f / 180, aspect, 1.0f, 200.0f); //Wylicz macierz rzutowania
@@ -263,14 +268,30 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y, Bishop *model) 
 	M = glm::rotate(M, angle_x, glm::vec3(1, 0, 0));
 	M = glm::rotate(M, angle_y, glm::vec3(0, 1, 0));
 	//V=glm::scale(V,vec3(-1.0f,-1.0f,-1.0f));
-	V=glm::rotate(V,-45*3.14f/180,vec3(1.0f,0.0f,0.0f));
-	V=glm::translate(V,glm::vec3(0,0.0f,5.0f));
-	//Narysuj obiekt
-	//drawObject(vao,shaderProgram,P,V,M);
+	//V=glm::rotate(V,-45*3.14f/180,vec3(1.0f,0.0f,0.0f));
+	V=glm::translate(V,glm::vec3(0,0.0f,30.0f));
 	model->resetM();
 	model->rotate(angle_x,glm::vec3(1, 0, 0));
 	model->rotate(angle_y,glm::vec3(0, 1, 0));
 	model->draw(P,V);
+	//Narysuj obiekt
+	//drawObject(vao,shaderProgram,P,V,M);
+	// for(int i=0;i<8;i++){
+    //     for(int j=0;j<8;j++){
+    //        model = v_scene->getFromPosition(i,j);
+	// 		if(model!=NULL){
+	// 		model->resetM();
+	// 		model->translate(glm::vec3(i*1.0f,0.0f,j*1.0f));
+	// 		model->rotate(angle_x,glm::vec3(1, 0, 0));
+	// 		model->rotate(angle_y,glm::vec3(0, 1, 0));
+	// 		model->draw(P,V);
+	// 		}
+			
+    //     }
+    // }
+	
+		
+	
 	//Przerzuć tylny bufor na przedni
 	glfwSwapBuffers(window);
 
@@ -310,7 +331,7 @@ int main(void)
 	}
 
 	initOpenGLProgram(window); //Operacje inicjujące
-	Bishop model(0,shaderProgram,tex1);
+	//Bishop model(0,shaderProgram,tex1);
 
 	float angle_x = 0; //Kąt obrotu obiektu
 	float angle_y = 0; //Kąt obrotu obiektu
@@ -323,7 +344,7 @@ int main(void)
 		angle_x += speed_x*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		angle_y += speed_y*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		glfwSetTime(0); //Wyzeruj licznik czasu
-		drawScene(window,angle_x,angle_y,&model); //Wykonaj procedurę rysującą
+		drawScene(window,angle_x,angle_y); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 
