@@ -250,17 +250,17 @@ void drawObject(GLuint vao, ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4
 //Procedura rysująca zawartość sceny
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
-	Model *model;
+	Model *model,*bishop;
 	model = v_scene->getChessboard();
-	
+	bishop  = v_scene->getFromPosition(0,2);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów
 
 	glm::mat4 P = glm::perspective(90 * 3.14f / 180, aspect, 1.0f, 200.0f); //Wylicz macierz rzutowania
 
 	glm::mat4 V = glm::lookAt( //Wylicz macierz widoku
-		glm::vec3(0.0f, 0.0f, -5.0f),
+		glm::vec3(0.0f, 30.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::vec3(0.0f, 0.0f, 1.0f));
 
 	
 	//Wylicz macierz modelu rysowanego obiektu
@@ -268,12 +268,23 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	M = glm::rotate(M, angle_x, glm::vec3(1, 0, 0));
 	M = glm::rotate(M, angle_y, glm::vec3(0, 1, 0));
 	//V=glm::scale(V,vec3(-1.0f,-1.0f,-1.0f));
-	//V=glm::rotate(V,-45*3.14f/180,vec3(1.0f,0.0f,0.0f));
-	V=glm::translate(V,glm::vec3(0,0.0f,30.0f));
+	//V=glm::rotate(V,60*3.14f/180,vec3(1.0f,0.0f,0.0f));
+	//V=glm::translate(V,glm::vec3(0.0f,0.0f,30.0f));
 	model->resetM();
 	model->rotate(angle_x,glm::vec3(1, 0, 0));
 	model->rotate(angle_y,glm::vec3(0, 1, 0));
 	model->draw(P,V);
+	for(int i=0;i<8;i++){
+		for(int j=0;j<8;j++){
+			bishop = v_scene->getFromPosition(i,j);
+			if(bishop!=NULL){
+				bishop->setM(M);
+				bishop->translate(glm::vec3(21.0f-6.0f*j,5.0f,-21.0f+6.0f*i));
+				bishop->draw(P,V);
+			}
+		}
+	}
+	
 	//Narysuj obiekt
 	//drawObject(vao,shaderProgram,P,V,M);
 	// for(int i=0;i<8;i++){

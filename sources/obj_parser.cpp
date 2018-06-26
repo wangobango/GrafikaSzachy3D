@@ -185,3 +185,9 @@ void Model::rotate(float angle,glm::vec3 vec){
     M = glm::rotate(M,angle,vec);
 }
 
+void Model::scale(glm::vec3 vec){
+    M = glm::scale(M,vec);
+}
+void Model::setM(glm::mat4 mM){
+    M = mM;
+}

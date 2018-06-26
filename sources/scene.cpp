@@ -23,7 +23,7 @@ scene::scene(ShaderProgram *sp,uint texWhite,uint texBlack,uint texChessboard){
         for(int j=0;j<2;j++){ // laduje gonce
             temp = new Bishop(color,sp,tex);
             allModels.push_back(temp);
-            matrix[0*7+i][2+3*j]=temp;
+            matrix[0+7*i][2+3*j]=temp;
         }
         /*for(int j=0;j<8;j++){ // petla ladująca pionki 
             temp= new Model("models/pionek.obj");

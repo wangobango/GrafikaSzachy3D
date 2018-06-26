@@ -75,6 +75,8 @@ class Model{
     Model(ShaderProgram*, GLuint);  
     ~Model();  
     void translate(glm::vec3);
+    void scale(glm::vec3);
+    void setM(glm::mat4 mM);
     
 };
 
