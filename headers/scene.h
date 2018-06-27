@@ -6,6 +6,11 @@
 #include "shaderprogram.h"
 #include "bishop.h"
 #include "chessboard.h"
+#include "pawn.h"
+#include "knight.h"
+#include "rook.h"
+#include "king.h"
+#include "queen.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,6 +24,8 @@ public:
     Model *getChessboard();
     scene(ShaderProgram*,uint,uint,uint);
     ~scene();
+    void setToPosition(int x,int y,Model*);
+    void removeFromPosition(int x, int y);
 };
 
 

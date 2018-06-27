@@ -15,7 +15,6 @@
 #include "shaderprogram.h"
 #include<iostream>
 
-#include "headers/lodepng.h"
 
 using namespace std;
 using namespace glm;
@@ -77,7 +76,8 @@ class Model{
     void translate(glm::vec3);
     void scale(glm::vec3);
     void setM(glm::mat4 mM);
-    
+    void applyM(glm::mat4 mM);
+    bool isWhite();
 };
 
 #endif

@@ -2,6 +2,7 @@
 
 Chessboard::Chessboard(ShaderProgram *sp,GLuint vtex):Model(sp,vtex){
 	path="models/szachownica.obj";
+    color = 1;
     parse();
     loadArrays();
     prepare();

@@ -1,5 +1,5 @@
-#ifndef CHESSBOARD_H
-#define CHESSBOARD_H
+#ifndef QUEEN_H
+#define QUEEN_H
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-class Chessboard: public Model{
+class Queen: public Model{
 public:
-    Chessboard(ShaderProgram* ,GLuint);
+    Queen(bool,ShaderProgram* ,GLuint);
     void draw(glm::mat4,glm::mat4) override;
 };
 

@@ -33,7 +33,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "headers/bishop.h"
 #include "headers/chessboard.h"
 #include "headers/scene.h"
-
+#include "ruch.cpp"
 using namespace glm;
 
 float speed_x = 0; // [radiany/s]
@@ -54,21 +54,51 @@ GLuint bufTexCoords; //Uchwyt na bufor VBO przechowujący tablicę współrzędn
 GLuint tex0;
 GLuint tex1,tex2;
 scene *v_scene;
-//Kostka
-/*float* vertices=Models::CubeInternal::vertices;
-float* colors=Models::CubeInternal::colors;
-float* normals=Models::CubeInternal::normals;
-float* texCoords=Models::CubeInternal::texCoords;
-int vertexCount=Models::CubeInternal::vertexCount;*/
+bool moveEnable1,moveEnable2;
 
-//Czajnik
-float* vertices;
-float* colors;
-float* normals;
-float* texCoords;
-int vertexCount=3;
+vector<Move*> moves;
 
-
+int wczytajPartie(string name){
+    ifstream input(name.c_str());
+    string in,color,temp;
+    Coordinate start,stop;
+    Move *move;
+    short n=0,i=0;
+    while(!input.eof()){
+        input>>in;
+        n=0;
+        if(in!=""){
+            move = new Move();
+            while(in.find('-')!=string::npos){
+                n++;
+                i = in.find('-');
+                if(n==2){
+                    temp = in.substr(0,i);
+                    start.x = (int)temp[0]-97;
+                    start.y = (int)temp[1]-49;
+                    in.erase(0,i+1);
+                    move->setStartCoordinate(start);
+                }
+                else if(n==3){
+                    temp = in.substr(0,i);
+                    stop.x = (int)temp[0]-97;
+                    stop.y = (int)temp[1]-49;
+                    in.erase(0,i+1);
+                    move->setStopCoordinate(stop);
+                }
+                else{
+                    color = in.substr(0,i);
+                    in.erase(0,i+1);
+                    move->setColor(color);
+                }
+            }
+            moves.push_back(move);
+        }
+   
+    }
+    
+    
+}
 //Procedura obsługi błędów
 void error_callback(int error, const char* description) {
 	fputs(description, stderr);
@@ -82,6 +112,7 @@ void key_callback(GLFWwindow* window, int key,
 		if (key == GLFW_KEY_RIGHT) speed_y = 3.14;
 		if (key == GLFW_KEY_UP) speed_x = -3.14;
 		if (key == GLFW_KEY_DOWN) speed_x = 3.14;
+		if(key == GLFW_KEY_ENTER) moveEnable1 = true;
 	}
 
 
@@ -90,6 +121,7 @@ void key_callback(GLFWwindow* window, int key,
 		if (key == GLFW_KEY_RIGHT) speed_y = 0;
 		if (key == GLFW_KEY_UP) speed_x = 0;
 		if (key == GLFW_KEY_DOWN) speed_x = 0;
+		if(key== GLFW_KEY_ENTER) {moveEnable2 = true;moveEnable1=false;}
 	}
 }
 
@@ -103,89 +135,48 @@ void windowResize(GLFWwindow* window, int width, int height) {
     }
 }
 
-//Tworzy bufor VBO z tablicy
-GLuint makeBuffer(void *data, int vertexCount, int vertexSize) {
-	GLuint handle;
-
-	glGenBuffers(1,&handle);//Wygeneruj uchwyt na Vertex Buffer Object (VBO), który będzie zawierał tablicę danych
-	glBindBuffer(GL_ARRAY_BUFFER,handle);  //Uaktywnij wygenerowany uchwyt VBO
-	glBufferData(GL_ARRAY_BUFFER, vertexCount*vertexSize, data, GL_STATIC_DRAW);//Wgraj tablicę do VBO
-
-	return handle;
-}
-
-//Przypisuje bufor VBO do atrybutu
-void assignVBOtoAttribute(ShaderProgram *shaderProgram,const char* attributeName, GLuint bufVBO, int vertexSize) {
-	GLuint location=shaderProgram->getAttribLocation(attributeName); //Pobierz numer slotu dla atrybutu
-	glBindBuffer(GL_ARRAY_BUFFER,bufVBO);  //Uaktywnij uchwyt VBO
-	glEnableVertexAttribArray(location); //Włącz używanie atrybutu o numerze slotu zapisanym w zmiennej location
-	glVertexAttribPointer(location,vertexSize,GL_FLOAT, GL_FALSE, 0, NULL); //Dane do slotu location mają być brane z aktywnego VBO
-}
-
-//Przygotowanie do rysowania pojedynczego obiektu
-void prepareObject(ShaderProgram *shaderProgram) {
-	//Zbuduj VBO z danymi obiektu do narysowania
-	bufVertices=makeBuffer(vertices, vertexCount, sizeof(float)*4); //VBO ze współrzędnymi wierzchołków
-	bufNormals=makeBuffer(normals, vertexCount, sizeof(float)*4);//VBO z wektorami normalnymi wierzchołków
-	bufTexCoords=makeBuffer(texCoords, vertexCount, sizeof(float)*2);//VBO ze współrzędnymi teksturowania
-
-	//Zbuduj VAO wiążący atrybuty z konkretnymi VBO
-	glGenVertexArrays(1,&vao); //Wygeneruj uchwyt na VAO i zapisz go do zmiennej globalnej
-
-	glBindVertexArray(vao); //Uaktywnij nowo utworzony VAO
-
-	assignVBOtoAttribute(shaderProgram,"vertex",bufVertices,4); //"vertex" odnosi się do deklaracji "in vec4 vertex;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"normal",bufNormals,4); //"normal" odnosi się do deklaracji "in vec4 normal;" w vertex shaderze
-	assignVBOtoAttribute(shaderProgram,"texCoord0",bufTexCoords,2); //"texCoord0" odnosi się do deklaracji "in vec2 texCoord0;" w vertex shaderze
-
-	glBindVertexArray(0); //Dezaktywuj VAO
-}
 
 GLuint readTexture(char* filename,int pos) {
-  GLuint tex;
-  switch(pos){
-	  case 0: {
-		  glActiveTexture(GL_TEXTURE0);
-	  }
-	  case 1: {
-		  glActiveTexture(GL_TEXTURE1);
-	  }
-	  case 2: {
-		  glActiveTexture(GL_TEXTURE2);
-	  }
-  }
-  
+	GLuint tex;
+	switch(pos){
+		case 0: {
+			glActiveTexture(GL_TEXTURE0);
+		}
+		case 1: {
+			glActiveTexture(GL_TEXTURE1);
+		}
+		case 2: {
+			glActiveTexture(GL_TEXTURE2);
+		}
+	}
+	
 
-  //Wczytanie do pamięci komputera
-  std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
-  unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
-  //Wczytaj obrazek
-  unsigned error = lodepng::decode(image, width, height, filename);
-	cout<<error<<endl;
-  //Import do pamięci karty graficznej
-  glGenTextures(1,&tex); //Zainicjuj jeden uchwyt
-  glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-  //Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
-  glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
-    GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*) image.data());
+	//Wczytanie do pamięci komputera
+	std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
+	unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
+	//Wczytaj obrazek
+	unsigned error = lodepng::decode(image, width, height, filename);
+	//Import do pamięci karty graficznej
+	glGenTextures(1,&tex); //Zainicjuj jeden uchwyt
+	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
+	//Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*) image.data());
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
 
-  return tex;
+	return tex;
 }
 
 
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
-	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
-	
 	
 	glClearColor(0, 0, 0, 1); //Czyść ekran na czarno
 	glEnable(GL_DEPTH_TEST); //Włącz używanie Z-Bufora
 	glfwSetKeyCallback(window, key_callback); //Zarejestruj procedurę obsługi klawiatury
     glfwSetFramebufferSizeCallback(window,windowResize); //Zarejestruj procedurę obsługi zmiany rozmiaru bufora ramki
-	cout<<"control main"<<endl;
 
 
 	shaderProgram=new ShaderProgram("sources/vshader.vert",NULL,"sources/fshader.glsl"); //Wczytaj program cieniujący
@@ -193,17 +184,14 @@ void initOpenGLProgram(GLFWwindow* window) {
 	tex1=readTexture("black.png",1);
 	tex2=readTexture("szachownica.png",2);
 
-//	tex1=readTexture("metal_spec.png");
 	v_scene = new scene(shaderProgram,tex0,tex1,tex2);
-    //prepareObject(shaderProgram);
+	wczytajPartie("partia_testowa.txt");
+	
 }
 
 //Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram() {
 	delete shaderProgram; //Usunięcie programu cieniującego
-	delete vertices;
-	delete normals;
-	delete texCoords;
 	delete v_scene;
 	glDeleteVertexArrays(1,&vao); //Usunięcie vao
 	glDeleteBuffers(1,&bufVertices); //Usunięcie VBO z wierzchołkami
@@ -213,46 +201,12 @@ void freeOpenGLProgram() {
 	glDeleteTextures(1,&tex0); //Usunięcie tekstury z tex0
 }
 
-void drawObject(GLuint vao, ShaderProgram *shaderProgram, mat4 mP, mat4 mV, mat4 mM) {
-	//Włączenie programu cieniującego, który ma zostać użyty do rysowania
-	//W tym programie wystarczyłoby wywołać to raz, w setupShaders, ale chodzi o pokazanie,
-	//że mozna zmieniać program cieniujący podczas rysowania jednej sceny
-	shaderProgram->use();
-
-	//Przekaż do shadera macierze P,V i M.
-	//W linijkach poniżej, polecenie:
-	//  shaderProgram->getUniformLocation("P")
-	//pobiera numer slotu odpowiadającego zmiennej jednorodnej o podanej nazwie
-	//UWAGA! "P" w powyższym poleceniu odpowiada deklaracji "uniform mat4 P;" w vertex shaderze,
-	//a mP w glm::value_ptr(mP) odpowiada argumentowi  "mat4 mP;" TYM pliku.
-	//Cała poniższa linijka przekazuje do zmiennej jednorodnej P w vertex shaderze dane z argumentu mP niniejszej funkcji
-	//Pozostałe polecenia działają podobnie.
-	glUniformMatrix4fv(shaderProgram->getUniformLocation("P"),1, false, glm::value_ptr(mP));
-	glUniformMatrix4fv(shaderProgram->getUniformLocation("V"),1, false, glm::value_ptr(mV));
-	glUniformMatrix4fv(shaderProgram->getUniformLocation("M"),1, false, glm::value_ptr(mM));
-	glUniform1i(shaderProgram->getUniformLocation("textureMap0"),0); //Powiązanie textureMap0 we fragment shaderze z jednostką teksturowania nr 0
-
-	//Powiąż teksturę z uchwytem w tex0 z zerową jednostką teksturującą
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D,tex0);
-	//Powiąż teksturę z uchwytem w tex1 z zerową jednostką teksturującą
-
-	//Uaktywnienie VAO i tym samym uaktywnienie predefiniowanych w tym VAO powiązań slotów atrybutów z tablicami z danymi
-	glBindVertexArray(vao);
-
-	//Narysowanie obiektu
-	glDrawArrays(GL_TRIANGLES,0,vertexCount);
-
-	//Posprzątanie po sobie (niekonieczne w sumie jeżeli korzystamy z VAO dla każdego rysowanego obiektu)
-	glBindVertexArray(0);
-}
 
 //Procedura rysująca zawartość sceny
 void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
-	Model *model,*bishop;
-	model = v_scene->getChessboard();
-	bishop  = v_scene->getFromPosition(0,2);
+	Model *chessboard,*model;
+	chessboard = v_scene->getChessboard();
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); //Wykonaj czyszczenie bufora kolorów
 
 	glm::mat4 P = glm::perspective(90 * 3.14f / 180, aspect, 1.0f, 200.0f); //Wylicz macierz rzutowania
@@ -267,43 +221,27 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glm::mat4 M = glm::mat4(1.0f);
 	M = glm::rotate(M, angle_x, glm::vec3(1, 0, 0));
 	M = glm::rotate(M, angle_y, glm::vec3(0, 1, 0));
-	//V=glm::scale(V,vec3(-1.0f,-1.0f,-1.0f));
-	//V=glm::rotate(V,60*3.14f/180,vec3(1.0f,0.0f,0.0f));
-	//V=glm::translate(V,glm::vec3(0.0f,0.0f,30.0f));
-	model->resetM();
-	model->rotate(angle_x,glm::vec3(1, 0, 0));
-	model->rotate(angle_y,glm::vec3(0, 1, 0));
-	model->draw(P,V);
+
+	chessboard->resetM();
+	chessboard->rotate(angle_x,glm::vec3(1, 0, 0));
+	chessboard->rotate(angle_y,glm::vec3(0, 1, 0));
+	chessboard->draw(P,V);
 	for(int i=0;i<8;i++){
 		for(int j=0;j<8;j++){
-			bishop = v_scene->getFromPosition(i,j);
-			if(bishop!=NULL){
-				bishop->setM(M);
-				bishop->translate(glm::vec3(21.0f-6.0f*j,5.0f,-21.0f+6.0f*i));
-				bishop->draw(P,V);
+			model = v_scene->getFromPosition(i,j);
+			if(model!=NULL){
+				model->resetM();
+				model->applyM(M);
+				model->translate(glm::vec3(21.0f-6.0f*j,5.0f,-21.0f+6.0f*i));
+				
+				if(!model->isWhite()){
+					model->rotate(180*3.14f/180,glm::vec3(0.0f,1.0f,0.0f));
+				}
+				model->draw(P,V);
 			}
 		}
 	}
 	
-	//Narysuj obiekt
-	//drawObject(vao,shaderProgram,P,V,M);
-	// for(int i=0;i<8;i++){
-    //     for(int j=0;j<8;j++){
-    //        model = v_scene->getFromPosition(i,j);
-	// 		if(model!=NULL){
-	// 		model->resetM();
-	// 		model->translate(glm::vec3(i*1.0f,0.0f,j*1.0f));
-	// 		model->rotate(angle_x,glm::vec3(1, 0, 0));
-	// 		model->rotate(angle_y,glm::vec3(0, 1, 0));
-	// 		model->draw(P,V);
-	// 		}
-			
-    //     }
-    // }
-	
-		
-	
-	//Przerzuć tylny bufor na przedni
 	glfwSwapBuffers(window);
 
 }
@@ -324,7 +262,7 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+	window = glfwCreateWindow(1280, 720, "OpenGL", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
@@ -342,19 +280,34 @@ int main(void)
 	}
 
 	initOpenGLProgram(window); //Operacje inicjujące
-	//Bishop model(0,shaderProgram,tex1);
+	moveEnable2 = true;	
 
 	float angle_x = 0; //Kąt obrotu obiektu
 	float angle_y = 0; //Kąt obrotu obiektu
 
 	glfwSetTime(0); //Wyzeruj licznik czasu
-
+	Model *test;
+	int i=0;
+	Coordinate start,stop;
 	//Główna pętla
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
 		angle_x += speed_x*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		angle_y += speed_y*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		glfwSetTime(0); //Wyzeruj licznik czasu
+		if(moveEnable1 && moveEnable2){
+			//procedure
+			if(i<moves.size()){
+				start= moves[i]->getStartCoordinate();
+				stop = moves[i]->getStopCoordinate();
+				moves[i]->display();
+				test=v_scene->getFromPosition(start.y,start.x);
+				v_scene->setToPosition(stop.y,stop.x,test);
+				v_scene->removeFromPosition(start.y,start.x);
+				moveEnable2=false;
+				i++;
+			}
+		}
 		drawScene(window,angle_x,angle_y); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}

@@ -73,8 +73,8 @@ void Model::parse(){
         fstream file;
         file.open(path.c_str(),std::ios::in);
         string dane;
-        if(file.good()) cout<<"udalo sie otworzyc plik"<<endl;
-        else cout<<"nie udalo sie otworzyc pliku"<<endl;
+        //  if(file.good()) cout<<"udalo sie otworzyc plik"<<endl;
+        //  else cout<<"nie udalo sie otworzyc pliku"<<endl;
 
 
         while (!file.eof()) 
@@ -180,6 +180,7 @@ void Model::prepare(){
 }
 void Model::resetM(){
     M = glm::mat4(1.0f);
+
 }
 void Model::rotate(float angle,glm::vec3 vec){
     M = glm::rotate(M,angle,vec);
@@ -190,4 +191,10 @@ void Model::scale(glm::vec3 vec){
 }
 void Model::setM(glm::mat4 mM){
     M = mM;
+}
+void Model::applyM(glm::mat4 mM){
+    M = mM*M;
+}
+bool Model::isWhite(){
+    return color;
 }

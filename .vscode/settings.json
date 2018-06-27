@@ -44,5 +44,7 @@
         "typeinfo": "cpp",
         "*.ipp": "cpp"
     },
-    "files.autoSave": "onFocusChange"
+    "files.autoSave": "onFocusChange",
+    "window.zoomLevel": -0.5
+
 }
