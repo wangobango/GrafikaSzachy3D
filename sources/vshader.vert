@@ -17,10 +17,18 @@ out vec4 l; //wektor do swiatla w przestrzeni oka
 out vec4 n; //wektor normalny w przestrzeni oka
 out vec4 v; //wektor do obserwatora w przestrzeni oka
 out vec2 iTexCoord0; //wspolrzedne teksturowania
+out vec4 fragPos;
+out vec4 dirLightPosition;
+out vec4 pointLightPosition;
+out vec4 specLightPosition;
+
+
 
 void main(void) {
-    vec4 lp=vec4(0,40,-10,1); //Wspolrzedne swiatla w przestrzeni swiata
-
+    vec4 lp=vec4(5,10,0,1); //Wspolrzedne swiatla w przestrzeni swiata
+    dirLightPosition = V*vec4(0,10,-20,0);
+    pointLightPosition = V*lp;
+    fragPos = V*M*vertex;
     l=normalize(V*lp-V*M*vertex); //Wektor do swiatla w przestrzeni oka
     n=normalize(V*M*normal); //Wektor normalny w wierzcholku w przestrzeni oka
     v=normalize(vec4(0,0,0,1)-V*M*vertex); //Wektor do obserwatora w przestrzeni oka

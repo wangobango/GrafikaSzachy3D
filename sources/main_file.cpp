@@ -220,7 +220,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glm::mat4 P = glm::perspective(90 * 3.14f / 180, aspect, 1.0f, 200.0f); //Wylicz macierz rzutowania
 
 	glm::mat4 V = glm::lookAt( //Wylicz macierz widoku
-		glm::vec3(0.0f, 30.0f, 0.0f),
+		glm::vec3(0.0f, 40.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 1.0f));
 
