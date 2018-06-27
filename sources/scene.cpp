@@ -10,6 +10,7 @@ scene::scene(ShaderProgram *sp,uint texWhite,uint texBlack,uint texChessboard){
             matrix[i][j]=NULL;
         }
     }
+
     for(int i=0;i<2;i++){
         if(i==0){
             tex= texWhite;
@@ -72,3 +73,17 @@ void scene::setToPosition(int x,int y,Model *model){
 void scene::removeFromPosition(int x, int y){
     matrix[x][y]=NULL;
 }
+void scene::initiateHistory(int size){
+    history = new Model*[size];
+    for(int i=0;i<size;i++){
+        history[i]=NULL;
+    }
+}
+Model* scene::getModelFromHitory(int i){
+    return history[i];
+}
+void scene::addToHistory(int i, Model *model){
+    history[i] = model;
+}
+
+

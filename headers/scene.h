@@ -19,6 +19,8 @@ private:
     vector<Model*> allModels;
     Model* matrix[8][8];
     Chessboard* chessboard;
+    Model** history;
+
 public: 
     Model *getFromPosition(int x,int y);
     Model *getChessboard();
@@ -26,6 +28,9 @@ public:
     ~scene();
     void setToPosition(int x,int y,Model*);
     void removeFromPosition(int x, int y);
+    void initiateHistory(int size);
+    Model* getModelFromHitory(int i);
+    void addToHistory(int i, Model *);
 };
 
 

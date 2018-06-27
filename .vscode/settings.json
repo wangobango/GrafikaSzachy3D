@@ -42,7 +42,8 @@
         "type_traits": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "bitset": "cpp"
     },
     "files.autoSave": "onFocusChange",
     "window.zoomLevel": -0.5

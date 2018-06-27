@@ -36,9 +36,9 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "ruch.cpp"
 using namespace glm;
 
-float speed_x = 0; // [radiany/s]
+float speed_x = 0,speed_animation=0; // [radiany/s]
 float speed_y = 0; // [radiany/s]
-
+glm::vec3 actual;
 float aspect=1; //Stosunek szerokości do wysokości okna
 
 //Uchwyty na shadery
@@ -54,8 +54,9 @@ GLuint bufTexCoords; //Uchwyt na bufor VBO przechowujący tablicę współrzędn
 GLuint tex0;
 GLuint tex1,tex2;
 scene *v_scene;
-bool moveEnable1,moveEnable2;
-
+bool moveFoward,moveBackward,makingMoveFoward,makingMoveBackward;
+Model *beeingAnimated;
+glm::vec3 animationVec;
 vector<Move*> moves;
 
 int wczytajPartie(string name){
@@ -112,7 +113,9 @@ void key_callback(GLFWwindow* window, int key,
 		if (key == GLFW_KEY_RIGHT) speed_y = 3.14;
 		if (key == GLFW_KEY_UP) speed_x = -3.14;
 		if (key == GLFW_KEY_DOWN) speed_x = 3.14;
-		if(key == GLFW_KEY_ENTER) moveEnable1 = true;
+		if(key == GLFW_KEY_ENTER) {moveFoward = true;
+		speed_animation=0.5;}
+		if(key == GLFW_KEY_BACKSPACE) moveBackward = true;
 	}
 
 
@@ -121,7 +124,8 @@ void key_callback(GLFWwindow* window, int key,
 		if (key == GLFW_KEY_RIGHT) speed_y = 0;
 		if (key == GLFW_KEY_UP) speed_x = 0;
 		if (key == GLFW_KEY_DOWN) speed_x = 0;
-		if(key== GLFW_KEY_ENTER) {moveEnable2 = true;moveEnable1=false;}
+		if(key== GLFW_KEY_ENTER) {moveFoward=false;speed_animation=0;}
+		if(key== GLFW_KEY_BACKSPACE) {moveBackward=false;}
 	}
 }
 
@@ -186,7 +190,11 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	v_scene = new scene(shaderProgram,tex0,tex1,tex2);
 	wczytajPartie("partia_testowa.txt");
-	
+	moveFoward=false;
+	moveBackward=false;
+	makingMoveBackward=false;
+	makingMoveFoward=false;
+	v_scene->initiateHistory(moves.size());
 }
 
 //Zwolnienie zasobów zajętych przez program
@@ -231,14 +239,21 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 			model = v_scene->getFromPosition(i,j);
 			if(model!=NULL){
 				model->resetM();
-				model->applyM(M);
-				model->translate(glm::vec3(21.0f-6.0f*j,5.0f,-21.0f+6.0f*i));
 				
+				model->applyM(M);
+				if(beeingAnimated!=NULL & model==beeingAnimated){
+					model->translate(actual);
+				}
+				else {
+					model->translate(glm::vec3(21.0f-6.0f*j,2.51f,-21.0f+6.0f*i));				
+				}
 				if(!model->isWhite()){
 					model->rotate(180*3.14f/180,glm::vec3(0.0f,1.0f,0.0f));
 				}
+				
 				model->draw(P,V);
 			}
+
 		}
 	}
 	
@@ -246,7 +261,64 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 }
 
+void animateMove(Coordinate start,Coordinate stop,int j){
+	Model *model;
+	glm::vec3 a,b,dif,dif2;
+	bool animatex=true,animatey=true,down=false;
+	model = v_scene->getFromPosition(start.y,start.x);
+	a = glm::vec3(21.0f-6.0f*start.x,2.51f,-21.0f+6.0f*start.y);
+	b = glm::vec3(21.0f-6.0f*stop.x,2.51f,-21.0f+6.0f*stop.y);
+	float gora=12.0f;
+	dif = b-a;
+	dif2 = a;
+	dif2.y=gora;
+	dif2= dif2-a;
+	if(j==0){
+		actual=a;
+		animatex=true;
+		animatey=true;
+		beeingAnimated = v_scene->getFromPosition(start.y,start.x);
+	}
+	else {
+		glm::vec3 actualcmp(roundf(actual.x * 100) / 100,roundf(actual.y * 100) / 100,roundf(actual.z * 100) / 100);
+		glm::vec3 bcmp(roundf(b.x * 100) / 100,roundf(b.y * 100) / 100,roundf(b.z * 100) / 100);
+		
+		if(actualcmp==bcmp){
 
+			animatex=false;
+			makingMoveBackward=false;
+			makingMoveFoward=false;
+			beeingAnimated=NULL;
+		}
+		else if(actualcmp.x==bcmp.x && actualcmp.z == bcmp.z)
+		{
+			animatey=true;
+			down =true;
+		}
+		else if(actualcmp.y==roundf(gora*100)/100){
+			animatey=false;
+		}
+		
+	}
+	if(animatex){
+		if(animatey){
+			if(down){
+				dif2=dif2*(-1.0f);
+				actual+=dif2*0.05f;
+				down=true;
+			}
+			else{
+				actual+=dif2*0.05f;
+			}
+
+		}
+		else {
+			actual+=dif*0.02f;		
+		}
+	
+	}
+	
+}
 
 int main(void)
 {
@@ -262,7 +334,7 @@ int main(void)
 		exit(EXIT_FAILURE);
 	}
 
-	window = glfwCreateWindow(1280, 720, "OpenGL", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+	window = glfwCreateWindow(500, 500, "OpenGL", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
 
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
@@ -280,14 +352,14 @@ int main(void)
 	}
 
 	initOpenGLProgram(window); //Operacje inicjujące
-	moveEnable2 = true;	
+	
 
 	float angle_x = 0; //Kąt obrotu obiektu
 	float angle_y = 0; //Kąt obrotu obiektu
 
 	glfwSetTime(0); //Wyzeruj licznik czasu
 	Model *test;
-	int i=0;
+	int i=0,j=0;
 	Coordinate start,stop;
 	//Główna pętla
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
@@ -295,17 +367,56 @@ int main(void)
 		angle_x += speed_x*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		angle_y += speed_y*glfwGetTime(); //Zwiększ kąt o prędkość kątową razy czas jaki upłynął od poprzedniej klatki
 		glfwSetTime(0); //Wyzeruj licznik czasu
-		if(moveEnable1 && moveEnable2){
-			//procedure
+		if((moveFoward|| makingMoveFoward)){
 			if(i<moves.size()){
-				start= moves[i]->getStartCoordinate();
-				stop = moves[i]->getStopCoordinate();
-				moves[i]->display();
-				test=v_scene->getFromPosition(start.y,start.x);
-				v_scene->setToPosition(stop.y,stop.x,test);
-				v_scene->removeFromPosition(start.y,start.x);
-				moveEnable2=false;
-				i++;
+				if(j==0) makingMoveFoward=true;
+				if(makingMoveFoward){
+					animateMove(moves[i]->getStartCoordinate(),moves[i]->getStopCoordinate(),j);
+				}
+				j++;
+				if(!makingMoveFoward){
+					start= moves[i]->getStartCoordinate();
+					stop = moves[i]->getStopCoordinate();
+					test=v_scene->getFromPosition(stop.y,stop.x);
+
+					if(test!=NULL){
+						v_scene->addToHistory(i,test);
+					}
+					test=v_scene->getFromPosition(start.y,start.x);
+					v_scene->setToPosition(stop.y,stop.x,test);
+					v_scene->removeFromPosition(start.y,start.x);
+					i++;
+					j=0;
+				}
+			}
+		}
+
+		if(moveBackward || makingMoveBackward){
+			if(i==0 && !makingMoveBackward);
+			else if(i>=0){
+				if(j==0) {
+					makingMoveBackward=true;
+					if(i>0) i--;
+				}
+				if(makingMoveBackward){
+					animateMove(moves[i]->getStopCoordinate(),moves[i]->getStartCoordinate(),j);
+				}
+				j++;
+				if(!makingMoveBackward){
+					stop= moves[i]->getStartCoordinate();
+					start = moves[i]->getStopCoordinate();
+					test=v_scene->getFromPosition(start.y,start.x);
+					v_scene->setToPosition(stop.y,stop.x,test);
+					v_scene->removeFromPosition(start.y,start.x);
+					test = v_scene->getModelFromHitory(i);
+					if(test!=NULL){
+						
+						v_scene->setToPosition(start.y,start.x,test);
+						v_scene->addToHistory(i,NULL);
+					}
+					j=0;
+				}
+
 			}
 		}
 		drawScene(window,angle_x,angle_y); //Wykonaj procedurę rysującą
